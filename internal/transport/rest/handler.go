@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	_ "github.com/GOLANG-NINJA/crud-app/docs"
-	"github.com/GOLANG-NINJA/crud-app/internal/domain"
+	_ "github.com/crud-app/docs"
+	"github.com/crud-app/internal/domain"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger"
 )

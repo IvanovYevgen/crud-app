@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/GOLANG-NINJA/crud-app/internal/domain"
+	"github.com/crud-app/internal/domain"
 )
 
 // / We need this to keep the database connection

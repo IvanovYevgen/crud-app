@@ -3,6 +3,7 @@
 ### Stack
 - gorilla/mux
 - postgres 
+- swagger ("http://localhost:8080/swagger/index.html")
 
 ### Running
 ```go build -o app cmd/main.go && ./app```

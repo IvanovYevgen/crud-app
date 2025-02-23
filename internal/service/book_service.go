@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/GOLANG-NINJA/crud-app/internal/domain"
+	"github.com/crud-app/internal/domain"
 	"time"
 )
 
