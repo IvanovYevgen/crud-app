@@ -33,25 +33,23 @@ func NewHandler(booksManager BooksManager) *Handler {
 	}
 }
 
-// @Summary Get a book by ID
-// @Description Get book details by its ID
-// @Tags books
-// @Accept  json
-// @Produce  json
-// @Param id path int true "Book ID"
-// @Success 200 {object} domain.Book
-// @Failure 400 {string} string "Invalid ID"
-// @Failure 404 {string} string "Book not found"
-// @Router /books/{id} [get]
 func (h *Handler) getBookByID(w http.ResponseWriter, r *http.Request) {
 	id, err := getIdFromRequest(r)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"handler": "getBookByID",
+			"problem": "invalid ID",
+		}).Error(err)
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	book, err := h.booksManager.GetByID(context.TODO(), id)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"handler": "getBookByID",
+			"problem": "book not found",
+		}).Error(err)
 		http.Error(w, "Book not found", http.StatusNotFound)
 		return
 	}
@@ -60,15 +58,6 @@ func (h *Handler) getBookByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(book)
 }
 
-// @Summary Create a new book
-// @Description Create a new book record
-// @Tags books
-// @Accept  json
-// @Produce  json
-// @Param book body domain.Book true "Book object"
-// @Success 201 {string} string "Created"
-// @Failure 400 {string} string "Invalid input"
-// @Router /books [post]
 func (h *Handler) createBook(w http.ResponseWriter, r *http.Request) {
 	var book domain.Book
 	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
@@ -76,6 +65,7 @@ func (h *Handler) createBook(w http.ResponseWriter, r *http.Request) {
 			"handler": "createBook",
 			"problem": "unmarshaling request",
 		}).Error(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -91,24 +81,22 @@ func (h *Handler) createBook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-// @Summary Delete a book by ID
-// @Description Delete a book record by its ID
-// @Tags books
-// @Accept  json
-// @Produce  json
-// @Param id path int true "Book ID"
-// @Success 200 {string} string "Deleted"
-// @Failure 400 {string} string "Invalid ID"
-// @Failure 404 {string} string "Book not found"
-// @Router /books/{id} [delete]
 func (h *Handler) deleteBook(w http.ResponseWriter, r *http.Request) {
 	id, err := getIdFromRequest(r)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"handler": "deleteBook",
+			"problem": "invalid ID",
+		}).Error(err)
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.booksManager.Delete(context.TODO(), id); err != nil {
+		log.WithFields(log.Fields{
+			"handler": "deleteBook",
+			"problem": "failed to delete book",
+		}).Error(err)
 		http.Error(w, "Failed to delete book", http.StatusInternalServerError)
 		return
 	}
@@ -116,17 +104,13 @@ func (h *Handler) deleteBook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-// @Summary Get all books
-// @Description Get a list of all books
-// @Tags books
-// @Accept  json
-// @Produce  json
-// @Success 200 {array} domain.Book
-// @Failure 500 {string} string "Internal server error"
-// @Router /books [get]
 func (h *Handler) getAllBooks(w http.ResponseWriter, r *http.Request) {
 	books, err := h.booksManager.GetAll(context.TODO())
 	if err != nil {
+		log.WithFields(log.Fields{
+			"handler": "getAllBooks",
+			"problem": "failed to fetch books",
+		}).Error(err)
 		http.Error(w, "Failed to fetch books", http.StatusInternalServerError)
 		return
 	}
@@ -135,31 +119,32 @@ func (h *Handler) getAllBooks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(books)
 }
 
-// @Summary Update a book
-// @Description Update a book record by its ID
-// @Tags books
-// @Accept  json
-// @Produce  json
-// @Param id path int true "Book ID"
-// @Param book body domain.UpdateBookInput true "Updated book object"
-// @Success 200 {string} string "Updated"
-// @Failure 400 {string} string "Invalid input"
-// @Failure 404 {string} string "Book not found"
-// @Router /books/{id} [put]
 func (h *Handler) updateBook(w http.ResponseWriter, r *http.Request) {
 	id, err := getIdFromRequest(r)
 	if err != nil {
+		log.WithFields(log.Fields{
+			"handler": "updateBook",
+			"problem": "invalid ID",
+		}).Error(err)
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	var inp domain.UpdateBookInput
 	if err := json.NewDecoder(r.Body).Decode(&inp); err != nil {
+		log.WithFields(log.Fields{
+			"handler": "updateBook",
+			"problem": "invalid input",
+		}).Error(err)
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.booksManager.Update(context.TODO(), id, inp); err != nil {
+		log.WithFields(log.Fields{
+			"handler": "updateBook",
+			"problem": "failed to update book",
+		}).Error(err)
 		http.Error(w, "Failed to update book", http.StatusInternalServerError)
 		return
 	}
@@ -176,7 +161,6 @@ func getIdFromRequest(r *http.Request) (int64, error) {
 	return id, nil
 }
 
-// InitRouter initializes the router for mux
 func (h *Handler) InitRouter() *mux.Router {
 	r := mux.NewRouter()
 
@@ -189,7 +173,6 @@ func (h *Handler) InitRouter() *mux.Router {
 		books.HandleFunc("/{id:[0-9]+}", h.updateBook).Methods(http.MethodPut)
 	}
 
-	// Swagger
 	r.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	return r
