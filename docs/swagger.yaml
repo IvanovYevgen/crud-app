@@ -1,0 +1,166 @@
+definitions:
+  domain.Book:
+    properties:
+      author:
+        type: string
+      id:
+        type: integer
+      publish_date:
+        type: string
+      rating:
+        type: integer
+      title:
+        type: string
+    type: object
+  domain.UpdateBookInput:
+    properties:
+      author:
+        type: string
+      publish_date:
+        type: string
+      rating:
+        type: integer
+      title:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /books:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Book'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get all books
+      tags:
+      - books
+    post:
+      consumes:
+      - application/json
+      description: Create a new book record
+      parameters:
+      - description: Book object
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Book'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+      summary: Create a new book
+      tags:
+      - books
+  /books/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a book record by its ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "404":
+          description: Book not found
+          schema:
+            type: string
+      summary: Delete a book by ID
+      tags:
+      - books
+    get:
+      consumes:
+      - application/json
+      description: Get book details by its ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Book'
+        "400":
+          description: Invalid ID
+          schema:
+            type: string
+        "404":
+          description: Book not found
+          schema:
+            type: string
+      summary: Get a book by ID
+      tags:
+      - books
+    put:
+      consumes:
+      - application/json
+      description: Update a book record by its ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated book object
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateBookInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated
+          schema:
+            type: string
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "404":
+          description: Book not found
+          schema:
+            type: string
+      summary: Update a book
+      tags:
+      - books
+swagger: "2.0"
