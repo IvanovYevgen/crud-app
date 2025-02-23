@@ -10,6 +10,7 @@ import (
 	_ "github.com/crud-app/docs"
 	"github.com/crud-app/internal/domain"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -71,12 +72,19 @@ func (h *Handler) getBookByID(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) createBook(w http.ResponseWriter, r *http.Request) {
 	var book domain.Book
 	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
-		http.Error(w, "Invalid input", http.StatusBadRequest)
+		log.WithFields(log.Fields{
+			"handler": "createBook",
+			"problem": "unmarshaling request",
+		}).Error(err)
 		return
 	}
 
 	if err := h.booksManager.CreateBook(context.TODO(), book); err != nil {
-		http.Error(w, "Failed to create book", http.StatusInternalServerError)
+		log.WithFields(log.Fields{
+			"handler": "createBook",
+			"problem": "reading request body",
+		}).Error(err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

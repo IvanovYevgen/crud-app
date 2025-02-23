@@ -27,12 +27,11 @@ type Postgres struct {
 func New(folder, filename string) (*Config, error) {
 	cfg := new(Config)
 
-	// Загружаем переменные окружения из файла .env
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load();
+	 err != nil {
 		return nil, fmt.Errorf("ERROR LOADING .ENV FILE")
 	}
 
-	// Настройка Viper для чтения конфигурации из файла
 	viper.AddConfigPath(folder)
 	viper.SetConfigName(filename)
 

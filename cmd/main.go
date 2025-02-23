@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,12 +14,19 @@ import (
 	"github.com/crud-app/internal/transport/rest"
 	"github.com/crud-app/pkg/database"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
 	CONFIG_DIR  = "configs"
 	CONFIG_FILE = "main"
 )
+
+func init() {
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
+}
 
 func main() {
 	// init db
