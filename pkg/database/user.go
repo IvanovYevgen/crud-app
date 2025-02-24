@@ -1,8 +1,9 @@
-package psql
+package database
 
 import (
 	"context"
 	"database/sql"
+
 	"github.com/crud-app/internal/domain"
 )
 

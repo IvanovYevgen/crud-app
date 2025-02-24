@@ -7,6 +7,7 @@
 
 ### Running
 ```go build -o app cmd/main.go && ./app```
+```source .env && go build -o app cmd/main.go && ./app```
 
 For postgres we can use Docker
 

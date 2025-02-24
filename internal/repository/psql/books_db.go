@@ -9,24 +9,22 @@ import (
 	"github.com/crud-app/internal/domain"
 )
 
-// / We need this to keep the database connection
-type BooksDatabase struct {
+type Books struct {
 	db *sql.DB
 }
 
-// / Incapsulation of the database connection
-func NewBooksDatabase(db *sql.DB) *BooksDatabase {
-	return &BooksDatabase{db}
+func NewBooks(db *sql.DB) *Books {
+	return &Books{db}
 }
 
-func (b *BooksDatabase) CreateBook(ctx context.Context, book domain.Book) error {
+func (b *Books) Create(ctx context.Context, book domain.Book) error {
 	_, err := b.db.Exec("INSERT INTO books (title, author, publish_date, rating) values ($1, $2, $3, $4)",
 		book.Title, book.Author, book.PublishDate, book.Rating)
 
 	return err
 }
 
-func (b *BooksDatabase) GetByID(ctx context.Context, id int64) (domain.Book, error) {
+func (b *Books) GetByID(ctx context.Context, id int64) (domain.Book, error) {
 	var book domain.Book
 	err := b.db.QueryRow("SELECT id, title, author, publish_date, rating FROM books WHERE id=$1", id).
 		Scan(&book.ID, &book.Title, &book.Author, &book.PublishDate, &book.Rating)
@@ -37,7 +35,7 @@ func (b *BooksDatabase) GetByID(ctx context.Context, id int64) (domain.Book, err
 	return book, err
 }
 
-func (b *BooksDatabase) GetAll(ctx context.Context) ([]domain.Book, error) {
+func (b *Books) GetAll(ctx context.Context) ([]domain.Book, error) {
 	rows, err := b.db.Query("SELECT id, title, author, publish_date, rating FROM books")
 	if err != nil {
 		return nil, err
@@ -56,13 +54,13 @@ func (b *BooksDatabase) GetAll(ctx context.Context) ([]domain.Book, error) {
 	return books, rows.Err()
 }
 
-func (b *BooksDatabase) Delete(ctx context.Context, id int64) error {
+func (b *Books) Delete(ctx context.Context, id int64) error {
 	_, err := b.db.Exec("DELETE FROM books WHERE id=$1", id)
 
 	return err
 }
 
-func (b *BooksDatabase) Update(ctx context.Context, id int64, inp domain.UpdateBookInput) error {
+func (b *Books) Update(ctx context.Context, id int64, inp domain.UpdateBookInput) error {
 	setValues := make([]string, 0)
 	args := make([]interface{}, 0)
 	argId := 1
@@ -81,7 +79,7 @@ func (b *BooksDatabase) Update(ctx context.Context, id int64, inp domain.UpdateB
 
 	if inp.PublishDate != nil {
 		setValues = append(setValues, fmt.Sprintf("publish_date=$%d", argId))
-		args = append(args, *inp.PublishDate)
+		args = append(args, *inp.Author)
 		argId++
 	}
 
@@ -93,26 +91,9 @@ func (b *BooksDatabase) Update(ctx context.Context, id int64, inp domain.UpdateB
 
 	setQuery := strings.Join(setValues, ", ")
 
-	query := fmt.Sprintf("UPDATE books SET %s WHERE id=$%d", setQuery, argId)
+	query := fmt.Sprintf("UPDATE books SET %s WHERE id=%d", setQuery, argId+1)
 	args = append(args, id)
 
 	_, err := b.db.Exec(query, args...)
-	return err
-}
-
-func (b *BooksDatabase) CreateTable(ctx context.Context,) error {
-	// Create table query
-	query := `
-	CREATE TABLE IF NOT EXISTS books (
-		id SERIAL PRIMARY KEY,
-		title VARCHAR(255) NOT NULL,
-		author VARCHAR(255) NOT NULL,
-		publish_date DATE,
-		rating INT
-	);
-	`
-
-	// Execute query
-	_, err := b.db.Exec(query)
 	return err
 }
