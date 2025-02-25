@@ -55,8 +55,8 @@ func main() {
 	booksService := service.NewBookManager(booksRepo)
 
 	usersRepo := psql.NewUsers(db)
-	usersService := service.NewUsers(usersRepo, hasher, []byte("sample secret"), cfg.Auth.TokenTTL)
-
+	tokensRepo := psql.NewTokens(db)
+	usersService := service.NewUsers(usersRepo, tokensRepo, hasher, []byte("sample secret"))
 	handler := rest.NewHandler(booksService, usersService)
 
 	// init & run server
