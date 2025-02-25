@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/spf13/viper"
@@ -13,6 +15,10 @@ type Config struct {
 	Server struct {
 		Port int `mapstructure:"port"`
 	} `mapstructure:"server"`
+
+	Auth struct {
+		TokenTTL time.Duration `mapstructure:"token_ttl"`
+	} `mapstructure:"auth"`
 }
 
 type Postgres struct {
@@ -27,8 +33,7 @@ type Postgres struct {
 func New(folder, filename string) (*Config, error) {
 	cfg := new(Config)
 
-	if err := godotenv.Load();
-	 err != nil {
+	if err := godotenv.Load(); err != nil {
 		return nil, fmt.Errorf("ERROR LOADING .ENV FILE")
 	}
 

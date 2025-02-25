@@ -17,7 +17,7 @@ func NewBooks(db *sql.DB) *Books {
 	return &Books{db}
 }
 
-func (b *Books) Create(ctx context.Context, book domain.Book) error {
+func (b *Books) CreateBook(ctx context.Context, book domain.Book) error {
 	_, err := b.db.Exec("INSERT INTO books (title, author, publish_date, rating) values ($1, $2, $3, $4)",
 		book.Title, book.Author, book.PublishDate, book.Rating)
 

@@ -24,7 +24,7 @@ func NewBookManager(repo BooksRepository) *BooksService {
 	}
 }
 
-func (b *BooksService) CreateBook(ctx context.Context, book domain.Book) error {
+func (b *BooksService) Create(ctx context.Context, book domain.Book) error {
 	if book.PublishDate.IsZero() {
 		book.PublishDate = time.Now()
 	}

@@ -1,30 +1,73 @@
-package psql
+package main
 
 import (
-	"context"
-	"database/sql"
-	"github.com/crud-app/internal/domain"
+	"fmt"
+	"net/http"
+	"os"
+
+	"github.com/crud-app/internal/config"
+	"github.com/crud-app/internal/repository/psql"
+	"github.com/crud-app/internal/service"
+	"github.com/crud-app/internal/transport/rest"
+	"github.com/crud-app/pkg/database"
+	"github.com/crud-app/pkg/hash"
+
+	_ "github.com/lib/pq"
+
+	log "github.com/sirupsen/logrus"
 )
 
-type Users struct {
-	db *sql.DB
+const (
+	CONFIG_DIR  = "configs"
+	CONFIG_FILE = "main"
+)
+
+func init() {
+	log.SetFormatter(&log.JSONFormatter{})
+	log.SetOutput(os.Stdout)
+	log.SetLevel(log.InfoLevel)
 }
 
-func NewUsers(db *sql.DB) *Users {
-	return &Users{db}
-}
+func main() {
+	cfg, err := config.New(CONFIG_DIR, CONFIG_FILE)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-func (r *Users) Create(ctx context.Context, user domain.User) error {
-	_, err := r.db.Exec("INSERT INTO users (name, email, password, registered_at) values ($1, $2, $3, $4)",
-		user.Name, user.Email, user.Password, user.RegisteredAt)
+	// init db
+	db, err := database.NewPostgresConnection(database.ConnectionInfo{
+		Host:     cfg.DB.Host,
+		Port:     cfg.DB.Port,
+		Username: cfg.DB.Username,
+		DBName:   cfg.DB.Name,
+		SSLMode:  cfg.DB.SSLMode,
+		Password: cfg.DB.Password,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
-	return err
-}
+	// init deps
+	hasher := hash.NewSHA1Hasher("salt")
 
-func (r *Users) GetByCredentials(ctx context.Context, email, password string) (domain.User, error) {
-	var user domain.User
-	err := r.db.QueryRow("SELECT id, name, email, registered_at FROM users WHERE email=$1 AND password=$2", email, password).
-		Scan(&user.ID, &user.Name, &user.Email, &user.RegisteredAt)
+	booksRepo := psql.NewBooks(db)
+	booksService := service.NewBookManager(booksRepo)
 
-	return user, err
+	usersRepo := psql.NewUsers(db)
+	usersService := service.NewUsers(usersRepo, hasher, []byte("sample secret"), cfg.Auth.TokenTTL)
+
+	handler := rest.NewHandler(booksService, usersService)
+
+	// init & run server
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", cfg.Server.Port),
+		Handler: handler.InitRouter(),
+	}
+
+	log.Info("SERVER STARTED")
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Fatal(err)
+	}
 }
